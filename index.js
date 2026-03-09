@@ -1,6 +1,14 @@
 const express = require("express");
+const crypto = require("crypto");
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+function hashToMultiplier(seed) {
+    const hash = crypto.createHmac('sha256', seed).update('0000000000000000000fa3ad5c8865831a14bb57fdf851148c3d58b210515152').digest('hex');
+    const val = parseInt(hash.substring(0, 13), 16);
+    const multiplier = Math.max(100, Math.floor(4503599627370496 / (4503599627370496 - val)));
+    return (multiplier / 100).toFixed(2);
+}
 
 app.get('/', (req, res) => {
     res.send(`
@@ -9,117 +17,52 @@ app.get('/', (req, res) => {
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>MUNGAJR SPORTYBET V.I.P</title>
+        <title>MUNGAJR HASH DECODER</title>
         <style>
-            @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(228, 30, 38, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(228, 30, 38, 0); } 100% { box-shadow: 0 0 0 0 rgba(228, 30, 38, 0); } }
-            @keyframes glow { 0%, 100% { text-shadow: 0 0 10px #e41e26; } 50% { text-shadow: 0 0 20px #fff; } }
-            
-            body { background-color: #0d0d0d; color: #fff; font-family: 'Arial', sans-serif; margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; }
-            .header { color: #e41e26; font-weight: 900; font-size: 24px; animation: glow 2s infinite; margin-bottom: 5px; text-align: center; }
-            
-            .card { background: #1a1a1a; border-radius: 20px; padding: 20px; width: 100%; max-width: 400px; border: 2px solid #333; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
-            
-            .timer-display { background: #000; color: #00ff88; padding: 10px; border-radius: 8px; font-family: monospace; font-size: 14px; margin-bottom: 15px; border-left: 4px solid #00ff88; }
-            
-            .prediction-box { background: linear-gradient(180deg, #252525 0%, #151515 100%); border-radius: 15px; padding: 25px; border: 1px solid #444; text-align: center; margin-bottom: 20px; position: relative; }
-            .signal-time { font-size: 22px; color: #e41e26; font-weight: 900; margin-bottom: 10px; display: block; }
-            .signal-odd { font-size: 50px; font-weight: 900; color: #fff; margin: 10px 0; animation: glow 1s infinite; }
-            
-            .action-btn { background: #e41e26; color: white; border: none; padding: 20px; border-radius: 12px; font-weight: 900; width: 100%; cursor: pointer; font-size: 16px; animation: pulse-red 2s infinite; text-transform: uppercase; }
-            
-            .schedule-list { width: 100%; margin-top: 25px; background: #151515; border-radius: 12px; padding: 10px; }
-            .sch-item { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #222; font-size: 14px; }
-            .sch-item span:first-child { color: #888; }
-            .sch-item span:last-child { color: #00ff88; font-weight: bold; }
-
-            .wa-float { background: #25d366; color: white; text-decoration: none; padding: 15px; border-radius: 50px; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-top: 30px; width: 85%; border: 2px solid #fff; }
+            body { background: #0b0c0d; color: #fff; font-family: sans-serif; padding: 20px; text-align: center; }
+            .card { max-width: 400px; margin: auto; border: 2px solid #e41e26; border-radius: 15px; padding: 20px; background: #151617; box-shadow: 0 0 20px rgba(228, 30, 38, 0.3); }
+            input { width: 90%; padding: 15px; margin: 15px 0; background: #000; border: 1px solid #444; color: #00ff88; border-radius: 8px; font-family: monospace; }
+            .btn { background: #e41e26; color: #fff; border: none; padding: 15px; width: 100%; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; }
+            .res-box { font-size: 60px; color: #e41e26; font-weight: bold; margin: 20px 0; border-bottom: 2px solid #333; padding-bottom: 10px; }
+            .wa { display: block; margin-top: 20px; color: #25d366; text-decoration: none; font-weight: bold; }
         </style>
     </head>
     <body>
-        <div class="header">MUNGAJR SPORTYBET AI</div>
-        <p style="font-size: 10px; color: #888; margin-bottom: 20px;">VERSION 4.0 - LIVE SERVER SYNC</p>
-
+        <h2 style="color:#e41e26;">MUNGAJR V.I.P DECODER</h2>
         <div class="card">
-            <div class="timer-display">
-                SERVER TIME: <span id="clock">00:00:00</span>
-            </div>
-
-            <div class="prediction-box">
-                <span id="status-tag" style="font-size: 10px; color: #00ff88; letter-spacing: 2px;">SCANNING...</span>
-                <div class="signal-time" id="target-time">MUDA WA SIGNAL: --:--</div>
-                <div class="signal-odd" id="target-odd">0.00x</div>
-                <div style="font-size: 11px; color: #ffcc00;" id="countdown">SUBIRI SIGNAL MPYA...</div>
-            </div>
-
-            <button class="action-btn" onclick="getSignal()">BONYEZA KUPATA SIGNAL</button>
-
-            <div class="schedule-list" id="schedule">
-                <div style="font-size: 11px; color: #e41e26; font-weight: bold; margin-bottom: 10px; padding-left: 5px;">RATIBA YA SIGNAL ZIJAZO:</div>
-                </div>
+            <p style="font-size: 13px;">PASTE "SERVER SEED SHA256" HAPA:</p>
+            <input type="text" id="hInput" placeholder="675fbe47b202cce1a58e0dd921...">
+            <div id="res" class="res-box">?.??x</div>
+            <button class="btn" onclick="run()">DECODE NOW</button>
+            <p style="font-size: 10px; color: #888; margin-top: 15px;">Huu mfumo unatumia SHA-256 kupata matokeo halisi ya SportyBet.</p>
         </div>
-
-        <a href="https://wa.me/255763071896" class="wa-float">
-            💬 WhatsApp: 0763071896
-        </a>
-
+        <a href="https://wa.me/255763071896" class="wa">WASILIANA NA MUNGAJR (0763071896)</a>
         <script>
-            // Saa ya Seva
-            setInterval(() => {
-                document.getElementById('clock').innerText = new Date().toLocaleTimeString('en-GB');
-            }, 1000);
-
-            function getSignal() {
-                const btn = document.querySelector('.action-btn');
-                const timeText = document.getElementById('target-time');
-                const oddText = document.getElementById('target-odd');
-                const status = document.getElementById('status-tag');
-                
-                btn.disabled = true;
-                btn.innerText = "CONNECTING TO SPORTYBET...";
-                status.innerText = "BYPASSING FIREWALL...";
-
+            function run() {
+                const val = document.getElementById('hInput').value;
+                if(!val) return alert("Weka Hash kwanza!");
+                document.getElementById('res').innerText = "CALCULATING...";
                 setTimeout(() => {
-                    // Piga hesabu ya dakika 2 mbele
-                    const now = new Date();
-                    now.setMinutes(now.getMinutes() + 2);
-                    const hour = now.getHours().toString().padStart(2, '0');
-                    const min = now.getMinutes().toString().padStart(2, '0');
-                    const signalTime = hour + ":" + min;
-                    
-                    const odd = (Math.random() * (3.80 - 1.30) + 1.30).toFixed(2);
-
-                    timeText.innerText = "MUDA WA SIGNAL: " + signalTime;
-                    oddText.innerText = odd + "x";
-                    status.innerText = "SIGNAL FOUND!";
-                    btn.disabled = false;
-                    btn.innerText = "PATA SIGNAL NYINGINE";
-                    
-                    document.getElementById('countdown').innerText = "INGIA SPORTYBET SASA - SUBIRI MUDA HUO";
-                    updateSchedule();
-                }, 2000);
+                    window.location.href = "/calc?seed=" + val;
+                }, 1000);
             }
-
-            function updateSchedule() {
-                const sch = document.getElementById('schedule');
-                const list = sch.querySelectorAll('.sch-item');
-                list.forEach(el => el.remove());
-
-                let now = new Date();
-                for(let i=0; i<5; i++) {
-                    now.setMinutes(now.getMinutes() + (Math.floor(Math.random() * 8) + 4));
-                    const time = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0');
-                    const odd = (Math.random() * (4.00 - 1.40) + 1.40).toFixed(2);
-                    
-                    const row = document.createElement('div');
-                    row.className = 'sch-item';
-                    row.innerHTML = '<span>Raundi ya ' + time + '</span><span>' + odd + 'x</span>';
-                    sch.appendChild(row);
-                }
-            }
-            updateSchedule();
         </script>
     </body>
     </html>
+    `);
+});
+
+app.get('/calc', (req, res) => {
+    const seed = req.query.seed;
+    const result = hashToMultiplier(seed);
+    res.send(`
+        <body style="background:#0b0c0d; color:white; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; font-family:sans-serif;">
+            <div style="text-align:center; border:3px solid #e41e26; padding:50px; border-radius:25px; background:#151617; box-shadow: 0 0 30px rgba(228, 30, 38, 0.5);">
+                <p style="color:#888;">MATOKEO YA HASH:</p>
+                <h1 style="font-size:90px; color:#e41e26; margin:10px 0;">${result}x</h1>
+                <button onclick="window.history.back()" style="background:#e41e26; color:white; border:none; padding:12px 25px; border-radius:8px; cursor:pointer; font-weight:bold;">RUDI NYUMA</button>
+            </div>
+        </body>
     `);
 });
 
